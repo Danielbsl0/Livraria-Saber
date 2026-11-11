@@ -1,0 +1,35 @@
+[
+    {
+        "id": 1,
+        "titulo": "Senhor dos Colares - A Sociedade do Colar",
+        "autor": "J.R.R Token",
+        "editora": "Editora Aurora",
+        "genero": "Fantasia",
+        "ano_publicacao": 1954,
+        "isbn": "",
+        "preco": 75.0,
+        "quantidade": 10
+    },
+    {
+        "id": 2,
+        "titulo": "Henry Power e a Pedra Irracional",
+        "autor": "Joana K. Ronnin",
+        "editora": "Aurora",
+        "genero": "Fantasia",
+        "ano_publicacao": 1997,
+        "isbn": "FICT-0002",
+        "preco": 59.9,
+        "quantidade": 12
+    },
+    {
+        "id": 3,
+        "titulo": "O Pequeno Princípio",
+        "autor": "Antônio de Saint-Exel",
+        "editora": "",
+        "genero": "",
+        "ano_publicacao": null,
+        "isbn": "",
+        "preco": 29.9,
+        "quantidade": 7
+    }
+]
