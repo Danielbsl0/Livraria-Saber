@@ -8,7 +8,7 @@
         "ano_publicacao": 1954,
         "isbn": "",
         "preco": 75.0,
-        "quantidade": 10
+        "quantidade": 9
     },
     {
         "id": 2,
@@ -19,7 +19,7 @@
         "ano_publicacao": 1997,
         "isbn": "FICT-0002",
         "preco": 59.9,
-        "quantidade": 11
+        "quantidade": 8
     },
     {
         "id": 3,
@@ -31,5 +31,49 @@
         "isbn": "",
         "preco": 29.9,
         "quantidade": 6
+    },
+    {
+        "id": 4,
+        "titulo": "A Biblioteca das Estrelas",
+        "autor": "Helena Duarte",
+        "editora": "Editora Horizonte",
+        "genero": "Ficção científica",
+        "ano_publicacao": 2021,
+        "isbn": "DEMO-LS-0001",
+        "preco": 48.9,
+        "quantidade": 7
+    },
+    {
+        "id": 5,
+        "titulo": "Receitas de um Jardim Pequeno",
+        "autor": "Caio Nascimento",
+        "editora": "Pomar Editorial",
+        "genero": "Culinária",
+        "ano_publicacao": 2020,
+        "isbn": "DEMO-LS-0002",
+        "preco": 36.5,
+        "quantidade": 4
+    },
+    {
+        "id": 6,
+        "titulo": "O Mapa das Chuvas",
+        "autor": "Lia Monteiro",
+        "editora": "Editora Horizonte",
+        "genero": "Romance",
+        "ano_publicacao": 2023,
+        "isbn": "DEMO-LS-0003",
+        "preco": 42.0,
+        "quantidade": 3
+    },
+    {
+        "id": 7,
+        "titulo": "Pequeno Guia de Astronomia",
+        "autor": "Rui Campos",
+        "editora": "Norte Editorial",
+        "genero": "Divulgação científica",
+        "ano_publicacao": 2019,
+        "isbn": "DEMO-LS-0004",
+        "preco": 31.75,
+        "quantidade": 7
     }
 ]

@@ -7,5 +7,32 @@
         "data_prevista_devolucao": "2026-12-10",
         "data_devolucao": "2026-11-10",
         "status": "devolvido"
+    },
+    {
+        "usuario_id": 3,
+        "livro_id": 4,
+        "data_emprestimo": "2026-10-10",
+        "data_prevista_devolucao": "2026-10-24",
+        "data_devolucao": "2026-10-20",
+        "status": "devolvido",
+        "id": 2
+    },
+    {
+        "usuario_id": 4,
+        "livro_id": 6,
+        "data_emprestimo": "2026-11-05",
+        "data_prevista_devolucao": "2026-11-19",
+        "data_devolucao": null,
+        "status": "emprestado",
+        "id": 3
+    },
+    {
+        "id": 4,
+        "usuario_id": 3,
+        "livro_id": 5,
+        "data_emprestimo": "2026-11-12",
+        "data_prevista_devolucao": "2026-12-20",
+        "data_devolucao": null,
+        "status": "emprestado"
     }
 ]

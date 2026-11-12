@@ -12,6 +12,7 @@ import catalogo
 import emprestimos
 import livros
 import main
+import popular_dados
 import persistencia
 import usuarios
 import vendas
@@ -107,6 +108,165 @@ class TestesLivrariaSaber(unittest.TestCase):
         self.assertEqual(
             persistencia.carregar_dados("livros.json"), [{"nome": "Atualizado"}]
         )
+
+    def test_populacao_em_base_vazia_preserva_referencias_e_atualiza_estoque(self):
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            popular_dados.popular_dados()
+
+        livros_salvos = persistencia.carregar_dados("livros.json")
+        usuarios_salvos = persistencia.carregar_dados("usuarios.json")
+        emprestimos_salvos = persistencia.carregar_dados("emprestimos.json")
+        vendas_salvas = persistencia.carregar_dados("vendas.json")
+
+        self.assertEqual(len(livros_salvos), 4)
+        self.assertEqual(len(usuarios_salvos), 3)
+        self.assertEqual(len(emprestimos_salvos), 2)
+        self.assertEqual(len(vendas_salvas), 2)
+        self.assertEqual([livro["id"] for livro in livros_salvos], [1, 2, 3, 4])
+        self.assertEqual([usuario["id"] for usuario in usuarios_salvos], [1, 2, 3])
+        self.assertEqual([registro["id"] for registro in emprestimos_salvos], [1, 2])
+        self.assertEqual([registro["id"] for registro in vendas_salvas], [1, 2])
+        self.assertEqual([livro["quantidade"] for livro in livros_salvos], [7, 5, 3, 7])
+        self.assertEqual(
+            {registro["status"] for registro in emprestimos_salvos},
+            {"devolvido", "emprestado"},
+        )
+        livros_ids = {livro["id"] for livro in livros_salvos}
+        usuarios_ids = {usuario["id"] for usuario in usuarios_salvos}
+        for registro in emprestimos_salvos:
+            self.assertIn(registro["livro_id"], livros_ids)
+            self.assertIn(registro["usuario_id"], usuarios_ids)
+        for venda in vendas_salvas:
+            self.assertAlmostEqual(
+                venda["total"],
+                sum(item["quantidade"] * item["preco_unitario"] for item in venda["itens"]),
+            )
+            for item in venda["itens"]:
+                self.assertIn(item["livro_id"], livros_ids)
+        for usuario in usuarios_salvos:
+            self.assertTrue(usuarios.validar_cpf(usuario["cpf"]))
+        self.assertIn("Livros adicionados: 4", saida.getvalue())
+        self.assertIn("População concluída com sucesso", saida.getvalue())
+
+    def test_populacao_preserva_base_e_gera_ids_acima_do_maior(self):
+        demo_livro = popular_dados._livros_demo()[0]
+        livros_existentes = [
+            {
+                "id": 8,
+                **demo_livro,
+                "titulo": "  A BIBLIOTECA DAS ESTRELAS  ",
+                "autor": "HELENA DUARTE",
+                "quantidade": 10,
+            },
+            {
+                "id": 20,
+                "titulo": "Livro Preexistente",
+                "autor": "Autor Preexistente",
+                "editora": "Editora",
+                "genero": "Drama",
+                "ano_publicacao": 2020,
+                "isbn": "ISBN-20",
+                "preco": 15.0,
+                "quantidade": 9,
+            },
+        ]
+        usuarios_existentes = [
+            {
+                "id": 12,
+                "cpf": "52998224725",
+                "nome": "Usuário Preexistente",
+                "telefone": "",
+                "email": "",
+            }
+        ]
+        emprestimo_existente = self.criar_emprestimo(
+            identificador=30, usuario_id=12, livro_id=20, status="devolvido"
+        )
+        venda_existente = {
+            "id": 40,
+            "data_venda": "2026-10-01",
+            "itens": [
+                {
+                    "livro_id": 20,
+                    "titulo": "Livro Preexistente",
+                    "quantidade": 1,
+                    "preco_unitario": 15.0,
+                }
+            ],
+            "total": 15.0,
+        }
+        persistencia.salvar_dados("livros.json", livros_existentes)
+        persistencia.salvar_dados("usuarios.json", usuarios_existentes)
+        persistencia.salvar_dados("emprestimos.json", [emprestimo_existente])
+        persistencia.salvar_dados("vendas.json", [venda_existente])
+
+        with contextlib.redirect_stdout(io.StringIO()):
+            popular_dados.popular_dados()
+
+        livros_salvos = persistencia.carregar_dados("livros.json")
+        usuarios_salvos = persistencia.carregar_dados("usuarios.json")
+        emprestimos_salvos = persistencia.carregar_dados("emprestimos.json")
+        vendas_salvas = persistencia.carregar_dados("vendas.json")
+        self.assertEqual(livros_salvos[0]["id"], 8)
+        self.assertEqual(livros_salvos[0]["quantidade"], 9)
+        self.assertEqual(livros_salvos[1], livros_existentes[1])
+        self.assertEqual(usuarios_salvos[0], usuarios_existentes[0])
+        self.assertEqual([livro["id"] for livro in livros_salvos[2:]], [21, 22, 23])
+        self.assertEqual([usuario["id"] for usuario in usuarios_salvos[1:]], [13, 14, 15])
+        self.assertEqual([item["id"] for item in emprestimos_salvos], [30, 31, 32])
+        self.assertEqual([item["id"] for item in vendas_salvas], [40, 41, 42])
+        self.assertEqual(emprestimos_salvos[0], emprestimo_existente)
+        self.assertEqual(vendas_salvas[0], venda_existente)
+
+    def test_populacao_nao_duplica_nem_desconta_estoque_novamente(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            popular_dados.popular_dados()
+        conteudos_apos_primeira = {
+            nome: (persistencia.PASTA_DADOS / nome).read_bytes()
+            for nome in persistencia.NOMES_ARQUIVOS
+        }
+
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            popular_dados.popular_dados()
+
+        self.assertIn("Registros já existentes ignorados: 11", saida.getvalue())
+        for nome, conteudo in conteudos_apos_primeira.items():
+            self.assertEqual((persistencia.PASTA_DADOS / nome).read_bytes(), conteudo)
+
+    def test_populacao_preserva_arquivos_em_falha_de_leitura_ou_gravacao(self):
+        caminhos = {
+            nome: persistencia.PASTA_DADOS / nome
+            for nome in persistencia.NOMES_ARQUIVOS
+        }
+        originais = {nome: caminho.read_bytes() for nome, caminho in caminhos.items()}
+        caminhos["vendas.json"].write_text("{ JSON inválido", encoding="utf-8")
+        corrompido = caminhos["vendas.json"].read_bytes()
+        with contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaises(ValueError):
+                popular_dados.popular_dados()
+        for nome, caminho in caminhos.items():
+            esperado = corrompido if nome == "vendas.json" else originais[nome]
+            self.assertEqual(caminho.read_bytes(), esperado)
+
+        for nome, conteudo in originais.items():
+            caminhos[nome].write_bytes(conteudo)
+        conteudos_antes_da_gravacao = {
+            nome: caminho.read_bytes() for nome, caminho in caminhos.items()
+        }
+        salvar_original = persistencia.salvar_dados
+
+        def falhar_ao_salvar_usuarios(nome, dados):
+            if nome == "usuarios.json":
+                raise OSError("falha simulada")
+            salvar_original(nome, dados)
+
+        with patch.object(persistencia, "salvar_dados", side_effect=falhar_ao_salvar_usuarios):
+            with self.assertRaises(OSError):
+                popular_dados.popular_dados()
+        for nome, conteudo in conteudos_antes_da_gravacao.items():
+            self.assertEqual(caminhos[nome].read_bytes(), conteudo)
 
     def test_json_invalido_e_falha_de_gravacao_preservam_arquivo(self):
         caminho = persistencia.PASTA_DADOS / "livros.json"

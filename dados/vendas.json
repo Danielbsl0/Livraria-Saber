@@ -17,5 +17,82 @@
             }
         ],
         "total": 89.8
+    },
+    {
+        "data_venda": "2026-11-06",
+        "itens": [
+            {
+                "livro_id": 4,
+                "titulo": "A Biblioteca das Estrelas",
+                "quantidade": 1,
+                "preco_unitario": 48.9
+            },
+            {
+                "livro_id": 5,
+                "titulo": "Receitas de um Jardim Pequeno",
+                "quantidade": 1,
+                "preco_unitario": 36.5
+            }
+        ],
+        "total": 85.4,
+        "id": 2
+    },
+    {
+        "data_venda": "2026-11-09",
+        "itens": [
+            {
+                "livro_id": 6,
+                "titulo": "O Mapa das Chuvas",
+                "quantidade": 1,
+                "preco_unitario": 42.0
+            }
+        ],
+        "total": 42.0,
+        "id": 3
+    },
+    {
+        "id": 4,
+        "data_venda": "2026-11-12",
+        "itens": [
+            {
+                "livro_id": 2,
+                "titulo": "Henry Power e a Pedra Irracional",
+                "quantidade": 3,
+                "preco_unitario": 59.9
+            },
+            {
+                "livro_id": 1,
+                "titulo": "Senhor dos Colares - A Sociedade do Colar",
+                "quantidade": 1,
+                "preco_unitario": 75.0
+            }
+        ],
+        "total": 254.7
+    },
+    {
+        "id": 5,
+        "data_venda": "2026-11-12",
+        "itens": [
+            {
+                "livro_id": 8,
+                "titulo": "João",
+                "quantidade": 1,
+                "preco_unitario": 32.0
+            }
+        ],
+        "total": 32.0
+    },
+    {
+        "id": 6,
+        "data_venda": "2026-11-12",
+        "itens": [
+            {
+                "livro_id": 8,
+                "titulo": "João",
+                "quantidade": 1,
+                "preco_unitario": 32.0
+            }
+        ],
+        "total": 32.0
     }
 ]
