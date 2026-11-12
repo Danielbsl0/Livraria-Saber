@@ -1,5 +1,7 @@
 import json
+import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 
 PASTA_PROJETO = Path(__file__).resolve().parent
@@ -49,15 +51,34 @@ def carregar_dados(nome_arquivo):
 
 
 def salvar_dados(nome_arquivo, dados):
-    """Salva os dados em um arquivo JSON sem sobrescrever JSON inválido."""
+    """Salva JSON por substituição atômica sem perder o arquivo anterior."""
     caminho = _obter_caminho(nome_arquivo)
 
     if caminho.exists():
         # Verifica primeiro se o conteúdo atual pode ser lido como JSON.
         carregar_dados(nome_arquivo)
 
+    caminho_temporario = None
     try:
-        with caminho.open("w", encoding="utf-8") as arquivo:
+        with NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=caminho.parent,
+            prefix=f".{caminho.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as arquivo:
+            caminho_temporario = Path(arquivo.name)
             json.dump(dados, arquivo, indent=4, ensure_ascii=False)
+            arquivo.flush()
+
+        os.replace(caminho_temporario, caminho)
+        caminho_temporario = None
     except (OSError, TypeError, ValueError) as erro:
         raise OSError(f"Não foi possível salvar {nome_arquivo}: {erro}") from erro
+    finally:
+        if caminho_temporario is not None:
+            try:
+                caminho_temporario.unlink(missing_ok=True)
+            except OSError:
+                pass

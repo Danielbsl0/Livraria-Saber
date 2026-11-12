@@ -1,1 +1,16 @@
-[]
+[
+    {
+        "id": 1,
+        "cpf": "52998224725",
+        "nome": "Lucas Ferreira",
+        "telefone": "(82) 99123-4567",
+        "email": "lucas.ferreira@example.com"
+    },
+    {
+        "id": 2,
+        "cpf": "11144477735",
+        "nome": "Mariana Costa",
+        "telefone": "(82) 99234-5678",
+        "email": ""
+    }
+]

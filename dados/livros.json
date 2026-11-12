@@ -19,7 +19,7 @@
         "ano_publicacao": 1997,
         "isbn": "FICT-0002",
         "preco": 59.9,
-        "quantidade": 12
+        "quantidade": 11
     },
     {
         "id": 3,
@@ -30,6 +30,6 @@
         "ano_publicacao": null,
         "isbn": "",
         "preco": 29.9,
-        "quantidade": 7
+        "quantidade": 6
     }
 ]

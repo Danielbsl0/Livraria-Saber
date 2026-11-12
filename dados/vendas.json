@@ -1,1 +1,21 @@
-[]
+[
+    {
+        "id": 1,
+        "data_venda": "2026-11-10",
+        "itens": [
+            {
+                "livro_id": 2,
+                "titulo": "Henry Power e a Pedra Irracional",
+                "quantidade": 1,
+                "preco_unitario": 59.9
+            },
+            {
+                "livro_id": 3,
+                "titulo": "O Pequeno Princípio",
+                "quantidade": 1,
+                "preco_unitario": 29.9
+            }
+        ],
+        "total": 89.8
+    }
+]

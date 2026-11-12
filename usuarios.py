@@ -1,3 +1,4 @@
+from entradas import solicitar_id
 from persistencia import carregar_dados, salvar_dados
 
 
@@ -46,21 +47,39 @@ def validar_cpf(cpf):
     return digitos[10] == segundo_digito
 
 
-def _carregar_usuarios():
+def carregar_usuarios():
     """Carrega os usuários e verifica a estrutura básica dos registros."""
     try:
         usuarios = carregar_dados(NOME_ARQUIVO)
         if not isinstance(usuarios, list):
             raise ValueError("O arquivo de usuários deve conter uma lista.")
 
+        ids_encontrados = set()
+        cpfs_encontrados = set()
         for usuario in usuarios:
             if (
                 not isinstance(usuario, dict)
                 or type(usuario.get("id")) is not int
+                or usuario["id"] <= 0
                 or not isinstance(usuario.get("cpf"), str)
                 or not isinstance(usuario.get("nome"), str)
+                or not usuario["nome"].strip()
             ):
                 raise ValueError("Há um registro de usuário inválido no arquivo.")
+            if usuario["id"] in ids_encontrados:
+                raise ValueError("Há IDs de usuário duplicados no arquivo.")
+            ids_encontrados.add(usuario["id"])
+
+            cpf = usuario["cpf"]
+            if not validar_cpf(cpf) or _normalizar_cpf(cpf) != cpf:
+                raise ValueError("Há um CPF inválido ou não normalizado no arquivo.")
+            if cpf in cpfs_encontrados:
+                raise ValueError("Há CPFs duplicados no arquivo.")
+            cpfs_encontrados.add(cpf)
+
+            for campo in ("telefone", "email"):
+                if campo in usuario and not isinstance(usuario[campo], str):
+                    raise ValueError(f"O campo {campo} do usuário deve ser texto.")
 
         return usuarios
     except (OSError, ValueError) as erro:
@@ -105,19 +124,6 @@ def _solicitar_cpf(mensagem, permitir_vazio=False, cpf_atual=_SEM_VALOR):
         print("CPF inválido. Informe um CPF válido com 11 dígitos.")
 
 
-def _solicitar_id():
-    while True:
-        valor = input("ID do usuário: ").strip()
-        try:
-            identificador = int(valor)
-            if identificador > 0:
-                return identificador
-        except ValueError:
-            pass
-
-        print("Informe um ID numérico positivo.")
-
-
 def _encontrar_usuario_por_cpf(usuarios, cpf):
     for usuario in usuarios:
         if usuario["cpf"] == cpf:
@@ -142,7 +148,7 @@ def _exibir_usuario(usuario):
 
 def cadastrar_usuario():
     """Solicita os dados e cadastra um novo usuário."""
-    usuarios = _carregar_usuarios()
+    usuarios = carregar_usuarios()
     if usuarios is None:
         return
 
@@ -172,7 +178,7 @@ def cadastrar_usuario():
 
 def listar_usuarios():
     """Exibe os dados de todos os usuários cadastrados."""
-    usuarios = _carregar_usuarios()
+    usuarios = carregar_usuarios()
     if usuarios is None:
         return
     if not usuarios:
@@ -187,7 +193,7 @@ def listar_usuarios():
 
 def consultar_usuario():
     """Localiza e exibe um usuário pelo CPF."""
-    usuarios = _carregar_usuarios()
+    usuarios = carregar_usuarios()
     if usuarios is None:
         return
     if not usuarios:
@@ -206,7 +212,7 @@ def consultar_usuario():
 
 def alterar_usuario():
     """Altera os dados de um usuário, preservando campos deixados em branco."""
-    usuarios = _carregar_usuarios()
+    usuarios = carregar_usuarios()
     if usuarios is None:
         return
     if not usuarios:
@@ -254,17 +260,27 @@ def alterar_usuario():
 
 def excluir_usuario():
     """Solicita confirmação e exclui um usuário pelo ID interno."""
-    usuarios = _carregar_usuarios()
+    usuarios = carregar_usuarios()
     if usuarios is None:
         return
     if not usuarios:
         print("Não há usuários cadastrados para excluir.")
         return
 
-    identificador = _solicitar_id()
+    identificador = solicitar_id("ID do usuário: ")
     usuario = _encontrar_usuario_por_id(usuarios, identificador)
     if usuario is None:
         print(f"Nenhum usuário foi encontrado com o ID {identificador}.")
+        return
+
+    from emprestimos import possui_emprestimo_em_aberto
+
+    emprestimo_aberto = possui_emprestimo_em_aberto("usuario_id", identificador)
+    if emprestimo_aberto is None:
+        print("Usuário não excluído porque não foi possível verificar os empréstimos.")
+        return
+    if emprestimo_aberto:
+        print("Usuário não pode ser excluído enquanto possuir empréstimo em aberto.")
         return
 
     print("Usuário selecionado para exclusão:")

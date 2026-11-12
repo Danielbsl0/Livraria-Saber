@@ -1,1 +1,11 @@
-[]
+[
+    {
+        "id": 1,
+        "usuario_id": 1,
+        "livro_id": 3,
+        "data_emprestimo": "2026-11-10",
+        "data_prevista_devolucao": "2026-12-10",
+        "data_devolucao": "2026-11-10",
+        "status": "devolvido"
+    }
+]

@@ -1,6 +1,9 @@
 from persistencia import inicializar_arquivos
 from livros import menu_gerenciamento_livros
 from usuarios import menu_gerenciamento_usuarios
+from catalogo import menu_catalogo
+from emprestimos import menu_gerenciamento_emprestimos
+from vendas import menu_gerenciamento_vendas
 
 
 def exibir_menu_principal():
@@ -11,7 +14,7 @@ def exibir_menu_principal():
 
 
 def consultar_catalogo():
-    print("A consulta ao catálogo será implementada nas próximas etapas.")
+    menu_catalogo()
 
 
 def acessar_area_funcionario():
@@ -19,7 +22,9 @@ def acessar_area_funcionario():
         print("\n=== Área do funcionário ===")
         print("1. Gerenciar livros")
         print("2. Gerenciar usuários")
-        print("3. Voltar ao menu principal")
+        print("3. Gerenciar empréstimos")
+        print("4. Gerenciar vendas")
+        print("5. Voltar ao menu principal")
         opcao = input("Escolha uma opção: ").strip()
 
         if opcao == "1":
@@ -27,9 +32,13 @@ def acessar_area_funcionario():
         elif opcao == "2":
             menu_gerenciamento_usuarios()
         elif opcao == "3":
+            menu_gerenciamento_emprestimos()
+        elif opcao == "4":
+            menu_gerenciamento_vendas()
+        elif opcao == "5":
             break
         else:
-            print("Opção inválida. Escolha 1, 2 ou 3.")
+            print("Opção inválida. Escolha 1, 2, 3, 4 ou 5.")
 
 
 def main():

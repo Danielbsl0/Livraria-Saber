@@ -1,5 +1,6 @@
 import math
 
+from entradas import solicitar_id
 from persistencia import carregar_dados, salvar_dados
 
 
@@ -7,24 +8,88 @@ NOME_ARQUIVO = "livros.json"
 _SEM_VALOR = object()
 
 
-def _carregar_livros():
+def carregar_livros(mensagem_erro="Não foi possível carregar os livros"):
     """Carrega os livros e verifica a estrutura básica dos dados."""
     try:
         livros = carregar_dados(NOME_ARQUIVO)
         if not isinstance(livros, list):
             raise ValueError("O arquivo de livros deve conter uma lista.")
 
+        ids_encontrados = set()
         for livro in livros:
-            if not isinstance(livro, dict) or not isinstance(livro.get("id"), int):
+            if (
+                not isinstance(livro, dict)
+                or type(livro.get("id")) is not int
+                or livro["id"] <= 0
+                or not isinstance(livro.get("titulo"), str)
+                or not livro["titulo"].strip()
+                or not isinstance(livro.get("autor"), str)
+                or not livro["autor"].strip()
+            ):
                 raise ValueError("Há um registro de livro inválido no arquivo.")
+            if livro["id"] in ids_encontrados:
+                raise ValueError("Há IDs de livro duplicados no arquivo.")
+            ids_encontrados.add(livro["id"])
+
+            preco = livro.get("preco")
+            if (
+                isinstance(preco, bool)
+                or not isinstance(preco, (int, float))
+                or (isinstance(preco, float) and not math.isfinite(preco))
+                or preco < 0
+            ):
+                raise ValueError("O preço de cada livro deve ser finito e não negativo.")
+
+            quantidade = livro.get("quantidade")
+            if type(quantidade) is not int or quantidade < 0:
+                raise ValueError("A quantidade de cada livro deve ser um inteiro não negativo.")
+
+            for campo in ("editora", "genero", "isbn"):
+                if campo in livro and not isinstance(livro[campo], str):
+                    raise ValueError(f"O campo {campo} do livro deve ser texto.")
+
+            ano = livro.get("ano_publicacao")
+            if ano is not None and (type(ano) is not int or ano <= 0):
+                raise ValueError("O ano de publicação deve ser um inteiro positivo ou nulo.")
 
         return livros
     except (OSError, ValueError) as erro:
-        print(f"Não foi possível carregar os livros: {erro}")
+        print(f"{mensagem_erro}: {erro}")
         return None
 
 
-def _salvar_livros(livros):
+def exibir_livro(livro, mostrar_id=True):
+    """Exibe os dados de um livro, com ID opcional para a área pública."""
+    if mostrar_id:
+        print(f"ID: {livro['id']}")
+
+    print(f"Título: {livro.get('titulo', '')}")
+    print(f"Autor: {livro.get('autor', '')}")
+    print(f"Editora: {livro.get('editora') or 'Não informada'}")
+    print(f"Gênero: {livro.get('genero') or 'Não informado'}")
+
+    ano = livro.get("ano_publicacao")
+    if mostrar_id:
+        ano = ano or "Não informado"
+    elif ano is None:
+        ano = "Não informado"
+    print(f"Ano de publicação: {ano}")
+    print(f"ISBN: {livro.get('isbn') or 'Não informado'}")
+
+    preco = livro.get("preco", 0) if mostrar_id else livro.get("preco")
+    if not mostrar_id and (
+        not isinstance(preco, (int, float)) or isinstance(preco, bool)
+    ):
+        print("Preço: Não informado")
+    else:
+        print(f"Preço: R$ {preco:.2f}")
+
+    quantidade = livro.get("quantidade", 0) if mostrar_id else livro.get("quantidade")
+    if mostrar_id or quantidade is not None:
+        print(f"Quantidade disponível: {quantidade}")
+
+
+def salvar_livros(livros):
     """Salva a lista de livros e informa se a operação foi concluída."""
     try:
         salvar_dados(NOME_ARQUIVO, livros)
@@ -99,19 +164,6 @@ def _solicitar_quantidade(valor_atual=_SEM_VALOR):
         print("Informe uma quantidade inteira não negativa.")
 
 
-def _solicitar_id():
-    while True:
-        valor = input("ID do livro: ").strip()
-        try:
-            identificador = int(valor)
-            if identificador > 0:
-                return identificador
-        except ValueError:
-            pass
-
-        print("Informe um ID numérico positivo.")
-
-
 def _encontrar_livro(livros, identificador):
     for livro in livros:
         if livro["id"] == identificador:
@@ -121,7 +173,7 @@ def _encontrar_livro(livros, identificador):
 
 def cadastrar_livro():
     """Solicita os dados e cadastra um novo livro."""
-    livros = _carregar_livros()
+    livros = carregar_livros()
     if livros is None:
         return
 
@@ -149,13 +201,13 @@ def cadastrar_livro():
     }
     livros.append(novo_livro)
 
-    if _salvar_livros(livros):
+    if salvar_livros(livros):
         print(f"Livro cadastrado com sucesso. ID: {novo_livro['id']}")
 
 
 def listar_livros():
     """Exibe os dados de todos os livros cadastrados."""
-    livros = _carregar_livros()
+    livros = carregar_livros()
     if livros is None:
         return
     if not livros:
@@ -164,28 +216,20 @@ def listar_livros():
 
     print("\n=== Livros cadastrados ===")
     for livro in livros:
-        print(f"ID: {livro['id']}")
-        print(f"Título: {livro.get('titulo', '')}")
-        print(f"Autor: {livro.get('autor', '')}")
-        print(f"Editora: {livro.get('editora') or 'Não informada'}")
-        print(f"Gênero: {livro.get('genero') or 'Não informado'}")
-        print(f"Ano de publicação: {livro.get('ano_publicacao') or 'Não informado'}")
-        print(f"ISBN: {livro.get('isbn') or 'Não informado'}")
-        print(f"Preço: R$ {livro.get('preco', 0):.2f}")
-        print(f"Quantidade disponível: {livro.get('quantidade', 0)}")
+        exibir_livro(livro)
         print("-" * 32)
 
 
 def alterar_livro():
     """Altera os campos de um livro, mantendo os valores dos campos em branco."""
-    livros = _carregar_livros()
+    livros = carregar_livros()
     if livros is None:
         return
     if not livros:
         print("Não há livros cadastrados para alterar.")
         return
 
-    identificador = _solicitar_id()
+    identificador = solicitar_id("ID do livro: ")
     livro = _encontrar_livro(livros, identificador)
     if livro is None:
         print(f"Não existe livro cadastrado com o ID {identificador}.")
@@ -237,23 +281,33 @@ def alterar_livro():
 
     indice = livros.index(livro)
     livros[indice] = livro_atualizado
-    if _salvar_livros(livros):
+    if salvar_livros(livros):
         print("Livro alterado com sucesso.")
 
 
 def excluir_livro():
     """Solicita confirmação e exclui um livro existente."""
-    livros = _carregar_livros()
+    livros = carregar_livros()
     if livros is None:
         return
     if not livros:
         print("Não há livros cadastrados para excluir.")
         return
 
-    identificador = _solicitar_id()
+    identificador = solicitar_id("ID do livro: ")
     livro = _encontrar_livro(livros, identificador)
     if livro is None:
         print(f"Não existe livro cadastrado com o ID {identificador}.")
+        return
+
+    from emprestimos import possui_emprestimo_em_aberto
+
+    emprestimo_aberto = possui_emprestimo_em_aberto("livro_id", identificador)
+    if emprestimo_aberto is None:
+        print("Livro não excluído porque não foi possível verificar os empréstimos.")
+        return
+    if emprestimo_aberto:
+        print("Livro não pode ser excluído enquanto possuir empréstimo em aberto.")
         return
 
     while True:
@@ -262,7 +316,7 @@ def excluir_livro():
         ).strip().lower()
         if confirmacao in ("s", "sim"):
             livros.remove(livro)
-            if _salvar_livros(livros):
+            if salvar_livros(livros):
                 print("Livro excluído com sucesso.")
             return
         if confirmacao in ("n", "nao", "não"):
