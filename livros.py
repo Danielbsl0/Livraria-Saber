@@ -325,6 +325,88 @@ def excluir_livro():
         print("Resposta inválida. Digite s para confirmar ou n para cancelar.")
 
 
+# Catálogo público
+def _pesquisar_catalogo(campo, descricao):
+    livros = carregar_livros("Não foi possível carregar o catálogo")
+    if livros is None:
+        return
+    if not livros:
+        print("O catálogo está vazio. Não há livros cadastrados.")
+        return
+
+    while True:
+        termo = input(f"Informe o {descricao} ou parte dele: ").strip()
+        if termo:
+            break
+        print("A pesquisa não pode ficar vazia. Informe um termo.")
+
+    termo = termo.casefold()
+    encontrados = []
+    for livro in livros:
+        valor = livro.get(campo, "")
+        if isinstance(valor, str) and termo in valor.casefold():
+            encontrados.append(livro)
+
+    if not encontrados:
+        print("Nenhum livro corresponde à pesquisa.")
+        return
+
+    print(f"\n=== Resultados da pesquisa por {descricao} ===")
+    for livro in encontrados:
+        exibir_livro(livro, mostrar_id=False)
+        print("-" * 40)
+
+
+def listar_catalogo():
+    livros = carregar_livros("Não foi possível carregar o catálogo")
+    if livros is None:
+        return
+    if not livros:
+        print("O catálogo está vazio. Não há livros cadastrados.")
+        return
+
+    print("\n=== Catálogo de livros ===")
+    for livro in livros:
+        exibir_livro(livro, mostrar_id=False)
+        print("-" * 40)
+
+
+def pesquisar_catalogo_por_titulo():
+    _pesquisar_catalogo("titulo", "título")
+
+
+def pesquisar_catalogo_por_autor():
+    _pesquisar_catalogo("autor", "autor")
+
+
+def pesquisar_catalogo_por_isbn():
+    _pesquisar_catalogo("isbn", "ISBN")
+
+
+def menu_catalogo():
+    while True:
+        print("\n===== CATÁLOGO DE LIVROS =====")
+        print("1. Listar todos os livros")
+        print("2. Pesquisar por título")
+        print("3. Pesquisar por autor")
+        print("4. Pesquisar por ISBN")
+        print("5. Voltar ao menu principal")
+        opcao = input("Escolha uma opção: ").strip()
+
+        if opcao == "1":
+            listar_catalogo()
+        elif opcao == "2":
+            pesquisar_catalogo_por_titulo()
+        elif opcao == "3":
+            pesquisar_catalogo_por_autor()
+        elif opcao == "4":
+            pesquisar_catalogo_por_isbn()
+        elif opcao == "5":
+            break
+        else:
+            print("Opção inválida. Escolha um número de 1 a 5.")
+
+
 def menu_gerenciamento_livros():
     """Mantém aberto o menu de gerenciamento até a opção de voltar."""
     while True:

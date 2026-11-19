@@ -1,7 +1,6 @@
 from persistencia import inicializar_arquivos
-from livros import menu_gerenciamento_livros
+from livros import menu_catalogo, menu_gerenciamento_livros
 from usuarios import menu_gerenciamento_usuarios
-from catalogo import menu_catalogo
 from emprestimos import menu_gerenciamento_emprestimos
 from vendas import menu_gerenciamento_vendas
 
